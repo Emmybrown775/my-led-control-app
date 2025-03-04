@@ -22,7 +22,7 @@ export default function LedArray() {
           <View style={styles.ledRow}>{circles.slice(10, 26)}</View>
           <View style={styles.textContainer}>
             <ThemedText style={styles.titleText} type="subtitle">
-              My Led Control Panel
+              My Led Control
             </ThemedText>
           </View>
         </View>
