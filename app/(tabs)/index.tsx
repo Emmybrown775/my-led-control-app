@@ -19,7 +19,9 @@ export default function Index() {
   return (
     <SafeAreaView style={styles.safeView}>
       <ScrollView style={styles.scrollView}>
-        <LedArray />
+        <View style={{ paddingTop: 20 }}>
+          <LedArray />
+        </View>
         <View style={styles.view}>
           <LedPanel />
 
@@ -42,7 +44,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.background,
     flex: 1,
     alignContent: "center",
-    paddingTop: 50,
   },
 
   view: {
