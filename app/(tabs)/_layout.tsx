@@ -13,7 +13,7 @@ export default function () {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: "Setup",
         }}
