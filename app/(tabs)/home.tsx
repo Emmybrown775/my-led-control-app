@@ -4,6 +4,7 @@ import LedArray from "@/components/LedArray";
 import LedPanel from "@/components/LedPanel";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
+import useBLE from "@/hooks/useBluetooth";
 import Slider from "@react-native-community/slider";
 import {
   Pressable,
@@ -16,6 +17,8 @@ import {
 } from "react-native";
 
 export default function Index() {
+  const { uploadData, connectedDevice } = useBLE();
+
   return (
     <SafeAreaView style={styles.safeView}>
       <ScrollView style={styles.scrollView}>
@@ -25,12 +28,15 @@ export default function Index() {
         <View style={styles.view}>
           <LedPanel />
 
-          <CustomSlider title="Change Speed" />
-          <CustomSlider title="LS Pulse Speed" />
-          <CustomSlider title="MS Pulse Speed" />
-          <CustomSlider title="RS Pulse Speed" />
+          <CustomSlider
+            note="change"
+            title={connectedDevice?.name?.toString()}
+          />
+          <CustomSlider note="ls" title="LS Pulse Speed" />
+          <CustomSlider note="ms" title="MS Pulse Speed" />
+          <CustomSlider note="ls" title="RS Pulse Speed" />
           <View style={{ marginTop: 20 }}>
-            <CustomButton text="Upload" />
+            <CustomButton onPress={() => uploadData()} text="Upload" />
           </View>
         </View>
       </ScrollView>

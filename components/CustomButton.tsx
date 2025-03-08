@@ -7,7 +7,7 @@ import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
 
 type Prop = TouchableOpacityProps & {
-  text: string;
+  text: string | undefined;
 };
 
 export default function CustomButton({ text, ...rest }: Prop) {

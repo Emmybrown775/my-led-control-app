@@ -1,7 +1,9 @@
+import CustomButton from "@/components/CustomButton";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { useBluetooth } from "@/hooks/useBluetooth";
+import useBLE from "@/hooks/useBluetooth";
 import { router } from "expo-router";
+import { useEffect } from "react";
 import {
   View,
   StatusBar,
@@ -11,8 +13,25 @@ import {
 } from "react-native";
 
 export default function LoadingScreen() {
-  useBluetooth({ onBluetoothReady: () => router.replace("/(tabs)/home") });
+  const {
+    requestPermissions,
+    scanForPeripherals,
+    allDevices,
+    connectToDevice,
+    connectedDevice,
+    disconnectFromDevice,
+  } = useBLE();
 
+  useEffect(() => {
+    scanForDevices();
+  });
+
+  const scanForDevices = async () => {
+    const isPermissionsEnabled = await requestPermissions();
+    if (isPermissionsEnabled) {
+      scanForPeripherals();
+    }
+  };
   return (
     <SafeAreaView
       style={{
@@ -22,8 +41,30 @@ export default function LoadingScreen() {
         alignItems: "center",
       }}
     >
-      <ActivityIndicator size="large" color="#007AFF" />
-      <ThemedText>Checking Bluetooth...</ThemedText>
+      {connectedDevice ? (
+        <View></View>
+      ) : (
+        <View>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <ThemedText>
+            {allDevices.length === 0
+              ? "Checking Bluetooth..."
+              : "Please select a device"}
+          </ThemedText>
+          {allDevices.length === 0
+            ? null
+            : allDevices.map((device, index) => {
+                return (
+                  <CustomButton
+                    key={index}
+                    onPress={() => connectToDevice(device)}
+                    text={device.name?.toString()}
+                  />
+                );
+              })}
+        </View>
+      )}
+
       <StatusBar backgroundColor={Colors.dark.background} />
     </SafeAreaView>
   );

@@ -3,6 +3,7 @@ import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
 import CustomButton from "./CustomButton";
 import { useState } from "react";
+import useBLE from "@/hooks/useBluetooth";
 
 export default function LedPanel() {
   const initialButtons = Array.from({ length: 36 }, (_, index) => ({
@@ -11,6 +12,8 @@ export default function LedPanel() {
     selected: false,
     availabe: true,
   }));
+
+  const { setBLESegment } = useBLE();
 
   const [buttons, setButtons] = useState(initialButtons);
   const [segments, setSegments] = useState<number[][]>([]);
@@ -39,6 +42,7 @@ export default function LedPanel() {
 
   const done = () => {
     setButtons(initialButtons);
+    setBLESegment(segments);
     setSegments([]);
   };
 

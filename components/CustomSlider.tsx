@@ -3,13 +3,23 @@ import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
 import Slider from "@react-native-community/slider";
 import { useState } from "react";
+import useBLE from "@/hooks/useBluetooth";
 
 type Prop = {
-  title: string;
+  title: string | undefined;
+  note: "change" | "ls" | "ms" | "rs";
 };
 
-export default function CustomSlider({ title }: Prop) {
+export default function CustomSlider({ title, note }: Prop) {
   const [sliderValue, setSliderValue] = useState(50);
+
+  const valueChange = (value: number) => {
+    setSliderValue(value);
+    setSpeed(note, Math.floor(value));
+  };
+
+  const { setSpeed } = useBLE();
+
   return (
     <View style={styles.view}>
       <ThemedText type="subtitle">{title}</ThemedText>
@@ -26,7 +36,7 @@ export default function CustomSlider({ title }: Prop) {
             maximumTrackTintColor={Colors.dark.tint}
             style={styles.slider}
             value={sliderValue}
-            onValueChange={(value) => setSliderValue(Math.floor(value))}
+            onValueChange={(value) => valueChange(Math.floor(value))}
           />
         </View>
         <ThemedText type="default">100</ThemedText>
