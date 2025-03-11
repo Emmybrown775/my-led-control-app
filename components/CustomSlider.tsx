@@ -3,7 +3,7 @@ import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
 import Slider from "@react-native-community/slider";
 import { useState } from "react";
-import useBLE from "@/hooks/useBluetooth";
+import { useBLEContext } from "@/providers/BLEContext";
 
 type Prop = {
   title: string | undefined;
@@ -18,7 +18,7 @@ export default function CustomSlider({ title, note }: Prop) {
     setSpeed(note, Math.floor(value));
   };
 
-  const { setSpeed } = useBLE();
+  const { setSpeed } = useBLEContext();
 
   return (
     <View style={styles.view}>

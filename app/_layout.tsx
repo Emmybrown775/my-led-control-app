@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BleManager, Device } from "react-native-ble-plx";
 import { PermissionsAndroid } from "react-native";
 import BluetoothStateManager from "react-native-bluetooth-state-manager";
+import { BLEProvider } from "@/providers/BLEContext";
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -26,9 +27,11 @@ export default function RootLayout() {
     return null;
   }
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <BLEProvider>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </BLEProvider>
   );
 }

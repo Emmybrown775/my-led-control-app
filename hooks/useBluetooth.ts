@@ -1,66 +1,32 @@
-import { useMemo, useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { PermissionsAndroid } from "react-native";
 import { BleManager, Device } from "react-native-ble-plx";
 import * as ExpoDevice from "expo-device";
+import { Buffer } from "buffer";
 import { router } from "expo-router";
 
-interface BluetoothLowEnergyApi {
-  requestPermissions(): Promise<boolean>;
-  scanForPeripherals(): void;
-  connectToDevice: (deviceId: Device) => Promise<void>;
-  disconnectFromDevice: () => void;
-  connectedDevice: Device | null;
-  allDevices: Device[];
-  setBLESegment: (numbers: number[][]) => void;
-  setSpeed: (key: "change" | "ls" | "ms" | "rs", value: number) => void;
-  uploadData: () => Promise<void>;
-}
+const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+const SERVICE_CHARACTERISTIC = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
-const SERVICE_UUID = "0000180d-0000-1000-8000-00805f9b34fb";
-const SERVICE_CHARACTERISTIC = "00002a37-0000-1000-8000-00805f9b34fb";
-
-export default function useBLE(): BluetoothLowEnergyApi {
+export function useBLE() {
   const bleManager = useMemo(() => new BleManager(), []);
   const [allDevices, setAllDevices] = useState<Device[]>([]);
-  const [connectedDevice, setConnectedDevices] = useState<Device | null>(null);
-  const [segments, setSegments] = useState<number[][]>([]);
+  const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
+  const [segments, setSegments] = useState<number[][]>([[]]);
   const [changeSpeed, setChangedSpeed] = useState<number>();
   const [lsSpeed, setLsSpeed] = useState<number>();
   const [msSpeed, setMsSpeed] = useState<number>();
   const [rsSpeed, setRsSpeed] = useState<number>();
 
-  const requestAndroidPermisions = async () => {
-    const bluetoothScanPermission = await PermissionsAndroid.request(
+  const requestAndroidPermissions = async () => {
+    const permissions = [
       PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-      {
-        title: "Bluetooth Scan",
-        message: "Bluetooth Low Energy bluetooth scan",
-        buttonPositive: "OK",
-      },
-    );
-
-    const bluetoothConnectPermission = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-      {
-        title: "Bluetooth Connection",
-        message: "Bluetooth Low Energy bluetooth connect",
-        buttonPositive: "OK",
-      },
-    );
-
-    const fineLocationPermission = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      {
-        title: "Location Permission",
-        message: "Bluetooth Low Energy requires Location",
-        buttonPositive: "OK",
-      },
-    );
-
-    return (
-      bluetoothScanPermission === "granted" &&
-      bluetoothConnectPermission === "granted" &&
-      fineLocationPermission === "granted"
+    ];
+    const results = await PermissionsAndroid.requestMultiple(permissions);
+    return Object.values(results).every(
+      (result) => result === PermissionsAndroid.RESULTS.GRANTED,
     );
   };
 
@@ -68,55 +34,45 @@ export default function useBLE(): BluetoothLowEnergyApi {
     if ((ExpoDevice.platformApiLevel ?? -1) < 31) {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: "Location Permission",
-          message: "Bluetooth Low Energy requires Location",
-          buttonPositive: "OK",
-        },
       );
       return granted === PermissionsAndroid.RESULTS.GRANTED;
     } else {
-      const isAndroidPermissionGranted = await requestAndroidPermisions();
-      return isAndroidPermissionGranted;
+      return await requestAndroidPermissions();
     }
   };
 
-  const isDuplicateDevice = (devises: Device[], nextDevice: Device) =>
-    devises.findIndex((devises) => nextDevice.id === devises.id) > -1;
-
-  const scanForPeripherals = () =>
+  const scanForPeripherals = () => {
     bleManager.startDeviceScan(null, null, (error, device) => {
       if (error) {
-        console.log(error);
+        console.error(error);
+        return;
       }
-      if (device && device.name?.includes("ESP32-C3-BLE")) {
-        setAllDevices((prevState: Device[]) => {
-          if (!isDuplicateDevice(prevState, device)) {
-            return [...prevState, device];
-          }
-          return prevState;
+      if (device?.name?.includes("ESP32-C3-BLE")) {
+        setAllDevices((prevState) => {
+          return prevState.some((d) => d.id === device.id)
+            ? prevState
+            : [...prevState, device];
         });
       }
     });
+  };
 
   const connectToDevice = async (device: Device) => {
     try {
-      router.replace("/(tabs)/home");
-      console.log("still running");
       const deviceConnection = await bleManager.connectToDevice(device.id);
-      setConnectedDevices(deviceConnection);
+      setConnectedDevice(deviceConnection);
       await deviceConnection.discoverAllServicesAndCharacteristics();
       bleManager.stopDeviceScan();
-      console.log(deviceConnection);
+      router.navigate("/(tabs)/home");
     } catch (e) {
-      console.log("Failed to connect", e);
+      console.error("Failed to connect", e);
     }
   };
 
   const disconnectFromDevice = () => {
     if (connectedDevice) {
       bleManager.cancelDeviceConnection(connectedDevice.id);
-      setConnectedDevices(null);
+      setConnectedDevice(null);
     }
   };
 
@@ -125,15 +81,10 @@ export default function useBLE(): BluetoothLowEnergyApi {
   };
 
   const setSpeed = (key: "change" | "ls" | "ms" | "rs", value: number) => {
-    if (key === "change") {
-      setChangedSpeed(value);
-    } else if (key === "ls") {
-      setLsSpeed(value);
-    } else if (key === "ms") {
-      setMsSpeed(value);
-    } else if (key === "rs") {
-      setRsSpeed(value);
-    }
+    if (key === "change") setChangedSpeed(value);
+    else if (key === "ls") setLsSpeed(value);
+    else if (key === "ms") setMsSpeed(value);
+    else if (key === "rs") setRsSpeed(value);
   };
 
   const uploadData = async () => {
@@ -143,8 +94,14 @@ export default function useBLE(): BluetoothLowEnergyApi {
     }
 
     try {
-      const data = btoa("testing.123");
-
+      const jsonData = JSON.stringify({
+        segments: segments,
+        changeSpeed: changeSpeed,
+        lsSpeed: lsSpeed,
+        rsSpeed: rsSpeed,
+        msSpeed: msSpeed,
+      });
+      const data = btoa(jsonData);
       await connectedDevice.writeCharacteristicWithResponseForService(
         SERVICE_UUID,
         SERVICE_CHARACTERISTIC,
@@ -168,5 +125,7 @@ export default function useBLE(): BluetoothLowEnergyApi {
     setBLESegment,
     setSpeed,
     uploadData,
+    segments,
+    changeSpeed,
   };
 }

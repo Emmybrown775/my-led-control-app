@@ -1,7 +1,7 @@
 import CustomButton from "@/components/CustomButton";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import useBLE from "@/hooks/useBluetooth";
+import { useBLEContext } from "@/providers/BLEContext";
 import { router } from "expo-router";
 import { useEffect } from "react";
 import {
@@ -20,10 +20,11 @@ export default function LoadingScreen() {
     connectToDevice,
     connectedDevice,
     disconnectFromDevice,
-  } = useBLE();
+  } = useBLEContext();
 
   useEffect(() => {
     scanForDevices();
+    router.replace("/(tabs)/home");
   });
 
   const scanForDevices = async () => {

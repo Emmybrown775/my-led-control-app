@@ -4,8 +4,7 @@ import LedArray from "@/components/LedArray";
 import LedPanel from "@/components/LedPanel";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import useBLE from "@/hooks/useBluetooth";
-import Slider from "@react-native-community/slider";
+import { useBLEContext } from "@/providers/BLEContext";
 import {
   Pressable,
   SafeAreaView,
@@ -17,7 +16,7 @@ import {
 } from "react-native";
 
 export default function Index() {
-  const { uploadData, connectedDevice } = useBLE();
+  const { uploadData, connectedDevice } = useBLEContext();
 
   return (
     <SafeAreaView style={styles.safeView}>
