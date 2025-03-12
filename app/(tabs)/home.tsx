@@ -16,7 +16,7 @@ import {
 } from "react-native";
 
 export default function Index() {
-  const { uploadData, connectedDevice } = useBLEContext();
+  const { uploadData, connectedDevice, disconnectFromDevice } = useBLEContext();
 
   return (
     <SafeAreaView style={styles.safeView}>
@@ -27,15 +27,17 @@ export default function Index() {
         <View style={styles.view}>
           <LedPanel />
 
-          <CustomSlider
-            note="change"
-            title={connectedDevice?.name?.toString()}
-          />
-          <CustomSlider note="ls" title="LS Pulse Speed" />
-          <CustomSlider note="ms" title="MS Pulse Speed" />
-          <CustomSlider note="ls" title="RS Pulse Speed" />
+          <CustomSlider note="change" title="Change Speed" />
+          <CustomSlider note="ls" title="Pulse Speed" />
+
           <View style={{ marginTop: 20 }}>
             <CustomButton onPress={() => uploadData()} text="Upload" />
+          </View>
+          <View style={{ marginTop: 30 }}>
+            <CustomButton
+              onPress={() => disconnectFromDevice()}
+              text="Disconnect"
+            />
           </View>
         </View>
       </ScrollView>

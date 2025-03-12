@@ -8,9 +8,10 @@ import { useBLEContext } from "@/providers/BLEContext";
 export default function LedPanel() {
   const initialButtons = Array.from({ length: 36 }, (_, index) => ({
     id: index,
-    title: index + 1,
+    title: (index + 1).toString(),
     selected: false,
     availabe: true,
+    inAnother: false,
   }));
 
   const { setBLESegment } = useBLEContext();
@@ -35,15 +36,51 @@ export default function LedPanel() {
 
     setSegments([...segments, selectedIndexes]);
     selected.forEach((led) => {
-      buttons[led.id].availabe = false;
-      buttons[led.id].title = segments.length + 1;
+      buttons[led.id].availabe = true;
+      buttons[led.id].title = buttons[led.id].inAnother
+        ? buttons[led.id].title + ", " + (segments.length + 1).toString()
+        : (segments.length + 1).toString();
+      buttons[led.id].inAnother = true;
+      buttons[led.id].selected = false;
     });
   };
 
   const done = () => {
+    console.log(segments);
     setButtons(initialButtons);
     setBLESegment(segments);
     setSegments([]);
+  };
+
+  const undo = () => {
+    const selected = buttons.filter((button) => button.selected);
+
+    if (selected.length !== 0) {
+      setButtons((prevItems) =>
+        prevItems.map((item) =>
+          item.selected ? { ...item, selected: false } : item,
+        ),
+      );
+    } else {
+      const lastSegment = segments.at(-1);
+
+      if (lastSegment) {
+        setButtons((prevButtons) =>
+          prevButtons.map((button, index) =>
+            lastSegment.includes(index)
+              ? button.title.includes(",")
+                ? {
+                    ...button,
+                    title: button.title.slice(0, -3),
+                    inAnother: false,
+                  }
+                : { ...button, title: (index + 1).toString(), inAnother: false }
+              : button,
+          ),
+        );
+        setSegments((prevItems) => prevItems.slice(0, -1));
+      }
+    }
   };
 
   return (
@@ -76,6 +113,7 @@ export default function LedPanel() {
           onPress={() => nextSegment()}
           text="Next Segment"
         ></CustomButton>
+        <CustomButton onPress={() => undo()} text="Undo"></CustomButton>
         <CustomButton onPress={() => done()} text="Done"></CustomButton>
       </View>
     </View>

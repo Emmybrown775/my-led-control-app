@@ -73,6 +73,7 @@ export function useBLE() {
     if (connectedDevice) {
       bleManager.cancelDeviceConnection(connectedDevice.id);
       setConnectedDevice(null);
+      router.replace("/");
     }
   };
 
