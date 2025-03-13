@@ -20,16 +20,17 @@ export default function LoadingScreen() {
     connectToDevice,
     connectedDevice,
     disconnectFromDevice,
+    checkBluetoothState,
   } = useBLEContext();
 
   useEffect(() => {
     scanForDevices();
-    router.replace("/(tabs)/home");
-  });
+  }, []);
 
   const scanForDevices = async () => {
     const isPermissionsEnabled = await requestPermissions();
     if (isPermissionsEnabled) {
+      checkBluetoothState();
       scanForPeripherals();
     }
   };

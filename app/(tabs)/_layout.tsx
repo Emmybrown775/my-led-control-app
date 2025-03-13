@@ -32,6 +32,22 @@ export default function () {
           },
         }}
       />
+
+      <Tabs.Screen
+        name="presets"
+        options={{
+          title: "Presets",
+          tabBarIcon: ({ focused, color, size }) => {
+            return (
+              <Ionicons
+                name={focused ? "pulse" : "pulse-outline"}
+                size={size}
+                color={color}
+              />
+            );
+          },
+        }}
+      />
     </Tabs>
   );
 }

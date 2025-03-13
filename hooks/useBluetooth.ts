@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
-import { PermissionsAndroid } from "react-native";
+import { Alert, PermissionsAndroid } from "react-native";
 import { BleManager, Device } from "react-native-ble-plx";
 import * as ExpoDevice from "expo-device";
 import { Buffer } from "buffer";
 import { router } from "expo-router";
+import BluetoothStateManager from "react-native-bluetooth-state-manager";
 
 const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 const SERVICE_CHARACTERISTIC = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
@@ -13,10 +14,8 @@ export function useBLE() {
   const [allDevices, setAllDevices] = useState<Device[]>([]);
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
   const [segments, setSegments] = useState<number[][]>([[]]);
-  const [changeSpeed, setChangedSpeed] = useState<number>();
-  const [lsSpeed, setLsSpeed] = useState<number>();
-  const [msSpeed, setMsSpeed] = useState<number>();
-  const [rsSpeed, setRsSpeed] = useState<number>();
+  const [changeSpeed, setChangedSpeed] = useState<number>(50);
+  const [lsSpeed, setLsSpeed] = useState<number>(50);
 
   const requestAndroidPermissions = async () => {
     const permissions = [
@@ -41,7 +40,37 @@ export function useBLE() {
     }
   };
 
+  const checkBluetoothState = () => {
+    console.log("hellososo");
+    bleManager.onStateChange((state) => {
+      if (state === "PoweredOn") {
+        scanForPeripherals();
+      } else {
+        promptToEnable();
+      }
+    }, true);
+  };
+
+  const promptToEnable = () => {
+    Alert.alert("Bluetooth Required", "Please Enable Bluetooth to continue", [
+      { text: "Turn On", onPress: enableBluetooth },
+      { text: "Exit App", onPress: () => {} },
+    ]);
+  };
+
+  const enableBluetooth = () => {
+    BluetoothStateManager.requestToEnable()
+      .then(() => {
+        scanForPeripherals();
+      })
+      .catch(() => {
+        console.log("User Aborted");
+      });
+  };
+
   const scanForPeripherals = () => {
+    console.log("Starting BLE scan...");
+    bleManager.stopDeviceScan();
     bleManager.startDeviceScan(null, null, (error, device) => {
       if (error) {
         console.error(error);
@@ -84,8 +113,6 @@ export function useBLE() {
   const setSpeed = (key: "change" | "ls" | "ms" | "rs", value: number) => {
     if (key === "change") setChangedSpeed(value);
     else if (key === "ls") setLsSpeed(value);
-    else if (key === "ms") setMsSpeed(value);
-    else if (key === "rs") setRsSpeed(value);
   };
 
   const uploadData = async () => {
@@ -98,9 +125,7 @@ export function useBLE() {
       const jsonData = JSON.stringify({
         segments: segments,
         changeSpeed: changeSpeed,
-        lsSpeed: lsSpeed,
-        rsSpeed: rsSpeed,
-        msSpeed: msSpeed,
+        pswSpeed: lsSpeed,
       });
       const data = btoa(jsonData);
       await connectedDevice.writeCharacteristicWithResponseForService(
@@ -128,5 +153,6 @@ export function useBLE() {
     uploadData,
     segments,
     changeSpeed,
+    checkBluetoothState,
   };
 }

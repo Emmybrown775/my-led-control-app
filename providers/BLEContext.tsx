@@ -13,6 +13,7 @@ interface BluetoothLowEnergyApi {
   uploadData: () => Promise<void>;
   segments: number[][];
   changeSpeed: number;
+  checkBluetoothState: () => void;
 }
 
 // Create Context

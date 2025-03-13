@@ -15,7 +15,6 @@ export default function CustomSlider({ title, note }: Prop) {
 
   const valueChange = (value: number) => {
     setSliderValue(value);
-    setSpeed(note, Math.floor(value));
   };
 
   const { setSpeed } = useBLEContext();
@@ -37,6 +36,7 @@ export default function CustomSlider({ title, note }: Prop) {
             style={styles.slider}
             value={sliderValue}
             onValueChange={(value) => valueChange(Math.floor(value))}
+            onSlidingComplete={(value) => setSpeed(note, Math.floor(value))}
           />
         </View>
         <ThemedText type="default">100</ThemedText>
