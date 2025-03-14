@@ -116,10 +116,12 @@ export default function TemplatesScreen() {
     );
 
     if (selectedTemplate) {
-      setBLESegment(selectedTemplate.segments);
-      setSpeed("change", selectedTemplate.changeSpeed);
-      setSpeed("ls", selectedTemplate.pswSpeed);
-      uploadData();
+      if (selectedTemplate.active) {
+        setBLESegment(selectedTemplate.segments);
+        setSpeed("change", selectedTemplate.changeSpeed);
+        setSpeed("ls", selectedTemplate.pswSpeed);
+        uploadData();
+      }
     }
   };
 
