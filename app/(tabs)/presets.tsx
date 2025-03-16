@@ -1,7 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { useBLEContext } from "@/providers/BLEContext";
 import { template } from "@babel/core";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -116,14 +116,20 @@ export default function TemplatesScreen() {
     );
 
     if (selectedTemplate) {
-      if (selectedTemplate.active) {
+      if (!selectedTemplate.active) {
         setBLESegment(selectedTemplate.segments);
         setSpeed("change", selectedTemplate.changeSpeed);
         setSpeed("ls", selectedTemplate.pswSpeed);
-        uploadData();
+        console.log(selectedTemplate.name);
       }
     }
   };
+
+  useEffect(() => {
+    if (activeTemplates.some((template) => template.active)) {
+      uploadData();
+    }
+  }, [activeTemplates, uploadData]);
 
   return (
     <View style={styles.container}>
